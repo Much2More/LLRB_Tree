@@ -33,6 +33,9 @@ namespace LLRB
         public void Insert(KeyType key)
         {
             Insert(new Node(key));
+
+            //ValidateChildrensParent();
+            //PrintAction("Insert", key);
         }
 
         public void Insert(Node node)
@@ -87,8 +90,6 @@ namespace LLRB
 
                 _AdjustTree(node);
             }
-            
-            PrintAction("Insert", node);
         }
 
         public Node Search(KeyType key)
@@ -140,6 +141,7 @@ namespace LLRB
                 else if (target.Color == Color.BLACK && target.Left != null && target.Left.Color == Color.RED && target.Left.Left == null)
                 {
                     Node redLeaf = target.Left;
+                    redLeaf.Color = Color.BLACK;
 
                     if (target == Root)
                     {
@@ -147,7 +149,6 @@ namespace LLRB
 
                         redLeaf.Parent = null;
                         target.Left = null;
-                        redLeaf.Color = Color.BLACK;
                     }
                     else
                     {
@@ -162,7 +163,7 @@ namespace LLRB
                     }
                 }
 
-                // [Case 3] black leaf with 3-key right sibling:
+                // [Case 3] black leaf with 3-key right sibling: Downgrade parent, and uplift red sibling as new black parent.
                 else if (target.Color == Color.BLACK && target.Left == null && target.Right == null && target.Parent is Node parent &&
                     parent.Left == target && parent.Right is Node blackSibling && blackSibling.Left is Node redSibling)
                 {
@@ -181,9 +182,10 @@ namespace LLRB
                         target.Parent = null;
                         parent.Left = null;
 
-                        // Attach parent as left child.
+                        // Attach parent as left leaf.
                         redSibling.Left = parent;
                         parent.Parent = redSibling;
+                        parent.Right = null;
 
                         // Attach black sibling as right child.
                         redSibling.Right = blackSibling;
@@ -207,9 +209,10 @@ namespace LLRB
                         target.Parent = null;
                         parent.Left = null;
 
-                        // Attach parent as left child.
+                        // Attach parent as left leaf.
                         redSibling.Left = parent;
                         parent.Parent = redSibling;
+                        parent.Right = null;
 
                         // Attach black sibling as right child.
                         redSibling.Right = blackSibling;
@@ -219,12 +222,10 @@ namespace LLRB
                     // If parent is red.
                     else
                     {
-                        // Connect with grandparent (the black one in the same 3-key as the red parent).
+                        // Connect red sibling with grandparent (the black one in the same 3-key as the red parent).
                         Node grandparent = parent.Parent;
                         grandparent.Left = redSibling;
                         redSibling.Parent = grandparent;
-
-                        // Detach red sibling.
                         blackSibling.Left = null;
 
                         // Detach target.
@@ -234,6 +235,7 @@ namespace LLRB
                         // Attach parent as left child, and flip parent as black.
                         redSibling.Left = parent;
                         parent.Parent = redSibling;
+                        parent.Right = null;
                         parent.Color = Color.BLACK;
 
                         // Attach black sibling as right child.
@@ -245,9 +247,12 @@ namespace LLRB
                 // [Case 4] black leaf with 3-key left sibling:
 
 
-                // TODO: Test each case respectively before implementing more cases.
-                // and merge the sub-cases if probably.
+                // Done: Test each case respectively before implementing more cases.
+                // TODO: Merge the sub-cases if probable.
             }
+
+            PrintAction("Remove", key);
+            ValidateChildrensParent();
         }
 
         // Adjust recursively to balance.
@@ -256,7 +261,8 @@ namespace LLRB
             // Validate color.
             if (newRed.Color != Color.RED)
             {
-                if (newRed != Root) Console.WriteLine($"Adjust non-red node with key {newRed.Key}");
+                if (newRed == Root) newRed.Parent = null;
+                else Console.WriteLine($"Adjust non-red node with key {newRed.Key}");
 
                 return;
             }
@@ -379,9 +385,9 @@ namespace LLRB
             parent.Color = tmp;
         }
 
-        public void PrintAction(string actionName, Node newNode)
+        public void PrintAction(string actionName, KeyType key)
         {
-            Console.WriteLine($"\n==================== {actionName}({newNode.Key}) ====================");
+            Console.WriteLine($"\n==================== {actionName}({key}) ====================");
             _PrintTree("", Root, ArrowRoot);
         }
 
@@ -404,6 +410,30 @@ namespace LLRB
                 Console.ResetColor();
 
                 _PrintTree(indent + Tab, node.Left, ArrowLeft);
+            }
+        }
+
+        public void ValidateChildrensParent()
+        {
+            if (Root != null)
+            {
+                if (Root.Parent != null) throw new Exception($"Root {Root.Key} should not have parent {Root.Parent.Key}!");
+                _ValidateChildrensParent(Root);
+            }
+        }
+
+        private void _ValidateChildrensParent(Node node)
+        {
+            if (node.Left != null)
+            {
+                if (node.Left.Parent != node) throw new Exception($"Node {node.Key} left {node.Left.Key} has wrong parent {node.Left.Parent.Key}!");
+                _ValidateChildrensParent(node.Left);
+            }
+
+            if (node.Right != null)
+            {
+                if (node.Right.Parent != node) throw new Exception($"Node {node.Key} right {node.Right.Key} has wrong parent {node.Right.Parent.Key}!");
+                _ValidateChildrensParent(node.Right);
             }
         }
     }

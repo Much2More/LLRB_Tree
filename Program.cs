@@ -8,7 +8,7 @@ namespace LLRB
         static void Main(string[] args)
         {
             Tree tree = new Tree();
-#if !Wrong
+#if InsertSucceeded
 
             tree.Insert(10);
             tree.Insert(20);
@@ -36,6 +36,48 @@ namespace LLRB
             tree.Print();
             tree.Insert(1);
             tree.Print();
+#endif
+
+
+#if TestRemove
+            for (int i = 4; i <= 80; i += 4)
+            {
+                tree.Insert(i);
+            }
+            tree.Insert(42);
+            tree.Insert(58);
+            tree.Insert(34);
+            tree.PrintAction("InitTree", 0);
+
+            tree.Remove(76);
+            tree.Remove(44);
+            tree.Remove(36);
+            tree.Remove(52);
+#endif
+
+#if !TestRemove
+            //for (int i = 4; i <= 20; i += 4)
+            //{
+            //    tree.Insert(i);
+            //}
+            tree.Insert(30);
+            tree.Insert(20);
+            tree.Insert(10);
+            tree.Insert(25);
+            tree.PrintAction("InitTree", 3);
+            tree.ValidateChildrensParent();
+
+            tree.Remove(10);
+
+
+            tree.Insert(5);
+            tree.Insert(10);
+            tree.Insert(15);
+            tree.PrintAction("InitTree", 5);
+            tree.ValidateChildrensParent();
+
+            tree.Remove(5);
+
 #endif
         }
     }
