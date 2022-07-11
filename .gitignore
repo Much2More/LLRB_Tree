@@ -1,0 +1,10 @@
+# Folders.
+.git/
+bin/
+obj/
+Properties/
+
+# Files.
+#.gitignore
+App.config
+*.csproj
