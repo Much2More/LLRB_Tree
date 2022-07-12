@@ -249,10 +249,20 @@ namespace LLRB
                     target.Parent.Right == target && target.Parent.Left is Node leftBlackSibling && leftBlackSibling.Left is Node leftmostRedSibling)
                 {
                     // Remove target.
-                    target.Parent.Right = null;
+                    Node parent0 = target.Parent;
+                    parent0.Right = null;
                     target.Parent = null;
 
-                    SpinClockwiseForLeftmostRed(leftmostRedSibling);
+                    SpinClockwiseAndSyncColorWithGrandparent(leftmostRedSibling);
+
+                    // Flip colors if both new children become red after spinning.
+                    if (parent0.Color == Color.RED)
+                    {
+                        Node newParent = parent0.Parent;
+                        newParent.Color = Color.RED;
+                        newParent.Left.Color = Color.BLACK;
+                        newParent.Right.Color = Color.BLACK;
+                    }
                 }
 
                 // Done: Test each case respectively before implementing more cases.
@@ -283,7 +293,7 @@ namespace LLRB
             // [Case 1] Red parent, left child: Spin clockwise & recurse.
             if (parent.Color == Color.RED && nodeIsLeft)
             {
-                SpinClockwiseForLeftmostRed(newRed);
+                SpinClockwiseAndSyncColorWithGrandparent(newRed);
 
                 _AdjustTree(parent);
             }
@@ -292,7 +302,7 @@ namespace LLRB
             else if (parent.Color == Color.RED && !nodeIsLeft)
             {
                 SpinCounterClockwiseAndSwapColorWithParent(newRed);
-                SpinClockwiseForLeftmostRed(newRed.Left);
+                SpinClockwiseAndSyncColorWithGrandparent(newRed.Left);
 
                 _AdjustTree(newRed);
             }
@@ -322,12 +332,12 @@ namespace LLRB
         /// This can be applied for two consecutive red nodes after insertion,<br/>
         /// or for the 3-key left leaf after the removal of its right 2-key sibling.
         /// </remarks>
-        public void SpinClockwiseForLeftmostRed(Node leftmostRed)
+        public void SpinClockwiseAndSyncColorWithGrandparent(Node leftmostRed)
         {
             Node parent = leftmostRed.Parent;
             Node grandparent = parent.Parent;
 
-            // Flip color as grandparent's.
+            // Flip color as grandparent's. For consecutive reds, grandparent must be black.
             leftmostRed.Color = grandparent.Color;
 
             // Nullable.
