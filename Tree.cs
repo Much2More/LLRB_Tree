@@ -255,7 +255,7 @@ namespace LLRB
 
                     SpinClockwiseAndSyncColorWithGrandparent(leftmostRedSibling);
 
-                    // Flip colors if both new children become red after spinning.
+                    // Flip colors if both new children become red after spinning (or simply call `AdjustTree`.)
                     if (parent0.Color == Color.RED)
                     {
                         Node newParent = parent0.Parent;
@@ -268,14 +268,14 @@ namespace LLRB
                 // Done: Test each case respectively before implementing more cases.
                 // TODO: Merge the sub-cases if probable.
 
-                // TODO: Validate red-black traits (same black height of leaves, no consecutive red nodes) and binary-search trait.
+                // TODO: Validate red-black traits (same black height of leaves, no consecutive red nodes, red always on left child) and binary-search trait.
             }
 
             PrintAction("Remove", key);
             ValidateChildrensParent();
         }
 
-        // Adjust recursively to balance.
+        // Adjust the tree recursively to balance.
         private void _AdjustTree(Node newRed)
         {
             // Validate color.
@@ -409,20 +409,20 @@ namespace LLRB
         public void PrintAction(string actionName, KeyType key)
         {
             Console.WriteLine($"\n==================== {actionName}({key}) ====================");
-            _PrintTree("", Root, ArrowRoot);
+            _PrintTree("", Root, ArrowForRoot);
         }
 
-        private const string Tab = "      ";
-        private const string ArrowLeft = "  \\=> ";
-        private const string ArrowRoot = "Tree> ";
-        private const string ArrowRight = "  /=> ";
+        private const string IndentSpaces = "      ";
+        private const string ArrowForLeft = "  \\=> ";
+        private const string ArrowForRoot = "Tree> ";
+        private const string ArrowForRight = "  /=> ";
 
         /// <param name="leftRootRight">0: left child, 1: root, 2: right child.</param>
         private static void _PrintTree(string indent, Node node, string arrow)
         {
             if (node != null)
             {
-                _PrintTree(indent + Tab, node.Right, ArrowRight);
+                _PrintTree(indent + IndentSpaces, node.Right, ArrowForRight);
                 
                 Console.Write(indent);
                 Console.Write(arrow);
@@ -430,7 +430,7 @@ namespace LLRB
                 Console.WriteLine(node.Key.ToString("D4"));
                 Console.ResetColor();
 
-                _PrintTree(indent + Tab, node.Left, ArrowLeft);
+                _PrintTree(indent + IndentSpaces, node.Left, ArrowForLeft);
             }
         }
 
