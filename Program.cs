@@ -55,7 +55,7 @@ namespace LLRB
             tree.Remove(52);
 #endif
 
-#if !TestRemove
+#if TestRemoveCase0_3
             //for (int i = 4; i <= 20; i += 4)
             //{
             //    tree.Insert(i);
@@ -79,6 +79,42 @@ namespace LLRB
             tree.Remove(5);
 
 #endif
+
+#if !TestRemoveCase4
+            tree.Insert(300);
+            tree.Insert(200);
+            tree.Insert(100);
+            tree.Insert(80);
+            tree.PrintAction("InitTree", 4);
+            tree.ValidateChildrensParent();
+
+            tree.Remove(300);
+
+            for (int i = 4; i <= 20; i += 4)
+            {
+                tree.Insert(i);
+            }
+            tree.Insert(2);
+
+            tree.PrintAction("InitTree", 5);
+            tree.ValidateChildrensParent();
+
+            tree.Remove(200);
+            tree.Remove(12);
+
+            for (int i = 61; i < 73; i += 2)
+            {
+                tree.Insert(i);
+            }
+            tree.Insert(66);
+
+            tree.PrintAction("InitTree", 6);
+            tree.ValidateChildrensParent();
+
+            tree.Remove(71);
+
+#endif
+
         }
     }
 }

@@ -163,7 +163,7 @@ namespace LLRB
                     }
                 }
 
-                // [Case 3] black leaf with 3-key right sibling: Downgrade parent, and uplift red sibling as new black parent.
+                // [Case 3] 2-key black leaf with 3-key right sibling: Downgrade parent, and uplift red sibling as new black parent.
                 else if (target.Color == Color.BLACK && target.Left == null && target.Right == null && target.Parent is Node parent &&
                     parent.Left == target && parent.Right is Node blackSibling && blackSibling.Left is Node redSibling)
                 {
@@ -244,11 +244,21 @@ namespace LLRB
                     }
                 }
 
-                // [Case 4] black leaf with 3-key left sibling:
+                // [Case 4] 2-key black leaf with 3-key left sibling: Remove element, spin red sibling clockwise, and flip as black.
+                else if (target.Color == Color.BLACK && target.Left == null && target.Right == null && target.Parent != null &&
+                    target.Parent.Right == target && target.Parent.Left is Node leftBlackSibling && leftBlackSibling.Left is Node leftmostRedSibling)
+                {
+                    // Remove target.
+                    target.Parent.Right = null;
+                    target.Parent = null;
 
+                    SpinClockwiseForLeftmostRed(leftmostRedSibling);
+                }
 
                 // Done: Test each case respectively before implementing more cases.
                 // TODO: Merge the sub-cases if probable.
+
+                // TODO: Validate red-black traits (same black height of leaves, no consecutive red nodes) and binary-search trait.
             }
 
             PrintAction("Remove", key);
@@ -273,7 +283,7 @@ namespace LLRB
             // [Case 1] Red parent, left child: Spin clockwise & recurse.
             if (parent.Color == Color.RED && nodeIsLeft)
             {
-                SpinClockwiseForConsecutiveReds(newRed);
+                SpinClockwiseForLeftmostRed(newRed);
 
                 _AdjustTree(parent);
             }
@@ -282,7 +292,7 @@ namespace LLRB
             else if (parent.Color == Color.RED && !nodeIsLeft)
             {
                 SpinCounterClockwiseAndSwapColorWithParent(newRed);
-                SpinClockwiseForConsecutiveReds(newRed.Left);
+                SpinClockwiseForLeftmostRed(newRed.Left);
 
                 _AdjustTree(newRed);
             }
@@ -304,52 +314,53 @@ namespace LLRB
         }
 
         /// <summary>
-        /// For two consecutive red nodes:
-        /// 1. Flip leftmost-red as black;
-        /// 2. Raise its red parent;
-        /// 3. Attach sibling to grandparent.
+        /// 1. Flip the color of leftmost-red as its grandparent;<br/>
+        /// 2. Raise its parent;<br/>
+        /// 3. Attach right sibling to grandparent.<br/>
         /// </summary>
-        public void SpinClockwiseForConsecutiveReds(Node leftmostRed)
+        /// <remarks>
+        /// This can be applied for two consecutive red nodes after insertion,<br/>
+        /// or for the 3-key left leaf after the removal of its right 2-key sibling.
+        /// </remarks>
+        public void SpinClockwiseForLeftmostRed(Node leftmostRed)
         {
-            // Flip color.
-            leftmostRed.Color = Color.BLACK;
+            Node parent = leftmostRed.Parent;
+            Node grandparent = parent.Parent;
 
-            // Its parent is also red.
-            Node redParent = leftmostRed.Parent;
-
-            // Red node must have a black parent.
-            Node blackGrandparent = redParent.Parent;
+            // Flip color as grandparent's.
+            leftmostRed.Color = grandparent.Color;
 
             // Nullable.
-            Node greatGrandParent = blackGrandparent.Parent;
+            Node greatGrandParent = grandparent.Parent;
             
             // Nullable.
-            Node sibling = redParent.Right;
+            Node sibling = parent.Right;
 
-            redParent.Right = blackGrandparent;
-            blackGrandparent.Parent = redParent;
+            parent.Right = grandparent;
+            grandparent.Parent = parent;
 
-            blackGrandparent.Left = sibling;
-            if (sibling != null) sibling.Parent = blackGrandparent;
+            grandparent.Left = sibling;
+            if (sibling != null) sibling.Parent = grandparent;
 
-            if (blackGrandparent == Root)
+            if (grandparent == Root)
             {
-                Root = redParent;
-                redParent.Color = Color.BLACK;
+                Root = parent;
+                parent.Color = Color.BLACK;
+                parent.Parent = null;
             }
 
-            // greatGrandParent != null && blackGrandparent is left child.
-            else if (greatGrandParent.Left == blackGrandparent)
+            // greatGrandParent != null && grandparent is left child.
+            else if (greatGrandParent.Left == grandparent)
             {
-                greatGrandParent.Left = redParent;
-                redParent.Parent = greatGrandParent;
+                greatGrandParent.Left = parent;
+                parent.Parent = greatGrandParent;
             }
 
-            // greatGrandParent != null && blackGrandparent is right child.
+            // greatGrandParent != null && grandparent is right child.
             else
             {
-                greatGrandParent.Right = redParent;
-                redParent.Parent = greatGrandParent;
+                greatGrandParent.Right = parent;
+                parent.Parent = greatGrandParent;
             }
         }
 
